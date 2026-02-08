@@ -3,7 +3,7 @@ import time
 import numpy as np
 import mediapipe as mp
 from mediapipe.tasks.python import vision
-
+import random
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes
 
@@ -101,7 +101,7 @@ for ch in range(eeg.shape[0]):
         eeg[ch], fs, 48, 52, 4, FilterTypes.BUTTERWORTH.value, 0
     )
 
-cut = fs * 5
+cut = fs * 30  # discard first 30 seconds
 eeg = eeg[:, cut:]
 eeg_ts = eeg_ts[cut:]
 
@@ -129,8 +129,10 @@ for i in range(0, eeg.shape[1] - window_size, window_size):
 X = np.array(X)
 y = np.array(y)
 
+randomName = random.randint(10000000, 99999999)
+
 np.savez(
-    "raw_eye_data.npz",
+    f"Eye Classifier/raw/raw_eye_data_{randomName}.npz",
     X=X,
     y=y,
     fs=fs,
