@@ -8,7 +8,7 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes
 
 # ===================== CV SETUP =====================
-model_path = "Eye Classifier/face_landmarker.task"
+model_path = "Eye Classifier/assets/face_landmarker.task"
 
 LEFT_EYE = [33, 160, 158, 133, 153, 144]
 RIGHT_EYE = [362, 385, 387, 263, 373, 380]
@@ -41,7 +41,7 @@ cv_log = []
 
 with vision.FaceLandmarker.create_from_options(options) as landmarker:
     start_time = time.time()
-    while time.time() - start_time < 300:   # 5 minutes
+    while time.time() - start_time < 1500:   # 5 minutes
         ret, frame = cap.read()
         if not ret:
             break

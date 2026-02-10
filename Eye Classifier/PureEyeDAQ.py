@@ -1,0 +1,119 @@
+import time
+import numpy as np
+import random
+from brainflow.board_shim import BoardShim, BrainFlowInputParams
+from brainflow.data_filter import DataFilter, FilterTypes
+
+# =====================
+# CONFIG
+# =====================
+BOARD_ID = 0                  # OpenBCI Cyton
+SERIAL_PORT = "COM3"
+FS = 250
+
+TOTAL_RECORD_SEC = 60         # 30s warmup + 60s usable
+WARMUP_SEC = 5
+
+WINDOW_SEC = 1
+LABEL_NAME = "eyes_open"
+LABEL_MARKER = 1              # non-zero, offline label only
+
+# =====================
+# SETUP BOARD
+# =====================
+params = BrainFlowInputParams()
+params.serial_port = SERIAL_PORT
+
+BoardShim.enable_dev_board_logger()
+board = BoardShim(BOARD_ID, params)
+
+print("Preparing session...")
+board.prepare_session()
+board.start_stream()
+
+print("Recording EEG...")
+time.sleep(TOTAL_RECORD_SEC)
+
+data = board.get_board_data()
+board.stop_stream()
+board.release_session()
+
+print("Recording stopped.")
+print("Raw data shape:", data.shape)
+
+# =====================
+# EXTRACT EEG + TIMESTAMPS
+# =====================
+eeg_channels = BoardShim.get_eeg_channels(BOARD_ID)
+ts_channel = BoardShim.get_timestamp_channel(BOARD_ID)
+
+eeg = data[eeg_channels]          # (C, T)
+eeg_ts = data[ts_channel]         # (T,)
+
+# =====================
+# BRAINFLOW FILTERING (MATCH SCRIPT 2)
+# =====================
+for ch in range(eeg.shape[0]):
+    # 0.5–40 Hz bandpass
+    DataFilter.perform_bandpass(
+        eeg[ch],
+        FS,
+        0.5,
+        40.0,
+        4,
+        FilterTypes.BUTTERWORTH.value,
+        0
+    )
+
+    # 48–52 Hz bandstop (mains)
+    DataFilter.perform_bandstop(
+        eeg[ch],
+        FS,
+        48.0,
+        52.0,
+        4,
+        FilterTypes.BUTTERWORTH.value,
+        0
+    )
+
+# =====================
+# DISCARD WARMUP (CRITICAL)
+# =====================
+cut = FS * WARMUP_SEC
+eeg = eeg[:, cut:]
+eeg_ts = eeg_ts[cut:]
+
+# =====================
+# WINDOWING (IDENTICAL SEMANTICS)
+# =====================
+T = FS * WINDOW_SEC
+X, y = [], []
+
+for i in range(0, eeg.shape[1] - T, T):
+    X.append(eeg[:, i:i + T])
+    y.append(LABEL_MARKER)
+
+X = np.array(X)    # (N, C, 250)
+y = np.array(y)
+
+# =====================
+# SAVE
+# =====================
+random_name = random.randint(10000000, 99999999)
+
+np.savez(
+    f"Eye Classifier/raw/{LABEL_NAME}_{random_name}.npz",
+    X=X,
+    y=y,
+    fs=FS,
+    window_sec=WINDOW_SEC,
+    bandpass_low=0.5,
+    bandpass_high=40.0,
+    bandstop_low=48.0,
+    bandstop_high=52.0,
+    warmup_sec=WARMUP_SEC
+)
+
+print("Done.")
+print("X shape:", X.shape)
+print("y shape:", y.shape)

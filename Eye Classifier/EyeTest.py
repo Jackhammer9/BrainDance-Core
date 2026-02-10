@@ -15,7 +15,7 @@ import torch.nn as nn
 BOARD_ID = 0
 SERIAL_PORT = "COM3"
 FS = 250
-WINDOW_SIZE = FS
+WINDOW_SIZE = FS      # 4 seconds
 SEQ_LEN = 5                # MUST match training
 SMOOTHING = 5
 CAMERA_INDEX = 0
@@ -37,6 +37,32 @@ class EyeStateLSTM(nn.Module):
         out, _ = self.lstm(x)
         last = out[:, -1, :]
         return self.fc(last)
+    
+
+# =========================
+#Helper Functions
+def draw_text_box(img, text, pos, font, scale, text_color, bg_color, thickness=2, padding=6):
+    (w, h), baseline = cv2.getTextSize(text, font, scale, thickness)
+    x, y = pos
+
+    cv2.rectangle(
+        img,
+        (x - padding, y - h - padding),
+        (x + w + padding, y + baseline + padding),
+        bg_color,
+        -1
+    )
+
+    cv2.putText(
+        img,
+        text,
+        (x, y),
+        font,
+        scale,
+        text_color,
+        thickness,
+        cv2.LINE_AA
+    )
 
 # =========================
 # LOAD MODEL
@@ -46,8 +72,8 @@ print("Using device:", device)
 
 checkpoint = torch.load("Eye Classifier/assets/eye_model.pth", map_location=device)
 
-FEATURE_DIM = checkpoint["feature_dim"]
-SEQ_LEN = checkpoint["seq_len"]
+FEATURE_DIM = 2000
+SEQ_LEN = 5
 
 model = EyeStateLSTM(FEATURE_DIM).to(device)
 model.load_state_dict(checkpoint["model_state"])
@@ -85,20 +111,32 @@ try:
             break
 
         data = board.get_current_board_data(WINDOW_SIZE)
+
         if data.shape[1] < WINDOW_SIZE:
             continue
 
+        # Explicitly select EEG channels only (ignore marker channel)
         eeg = data[eeg_channels, :].copy()
 
-        # --- FILTER ---
+        # FILTER ONLY ONCE PER WINDOW (safe)
         for ch in range(eeg.shape[0]):
             DataFilter.perform_bandpass(
-                eeg[ch], FS, 0.5, 40, 4,
-                FilterTypes.BUTTERWORTH.value, 0
+                eeg[ch],
+                FS,
+                0.5,
+                40.0,
+                4,
+                FilterTypes.BUTTERWORTH.value,
+                0
             )
             DataFilter.perform_bandstop(
-                eeg[ch], FS, 48, 52, 4,
-                FilterTypes.BUTTERWORTH.value, 0
+                eeg[ch],
+                FS,
+                48.0,
+                52.0,
+                4,
+                FilterTypes.BUTTERWORTH.value,
+                0
             )
 
         # --- FLATTEN WINDOW ---
@@ -131,18 +169,38 @@ try:
             logits_np = logits.cpu().numpy()[0]
             probs_np = probs.cpu().numpy()[0]
 
-            cv2.putText(frame, label, (40, 60),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 3)
+            draw_text_box(
+                frame,
+                label,
+                (40, 60),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.5,
+                color,
+                (0, 0, 0),
+                thickness=3
+            )
 
-            cv2.putText(frame,
-                        f"Logits: [{logits_np[0]:.1f}, {logits_np[1]:.1f}]",
-                        (40, 110),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
+            draw_text_box(
+                frame,
+                f"Logits: [{logits_np[0]:.1f}, {logits_np[1]:.1f}]",
+                (40, 110),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.9,
+                (255, 255, 255),
+                (0, 0, 0),
+                thickness=2
+            )
 
-            cv2.putText(frame,
-                        f"Probs: Open={probs_np[0]:.2f} Closed={probs_np[1]:.2f}",
-                        (40, 150),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
+            draw_text_box(
+                frame,
+                f"Probs: Open={probs_np[0]:.2f} Closed={probs_np[1]:.2f}",
+                (40, 150),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.9,
+                (255, 255, 255),
+                (0, 0, 0),
+                thickness=2
+            )
 
         cv2.imshow("EEG Live LSTM Classification", frame)
 
