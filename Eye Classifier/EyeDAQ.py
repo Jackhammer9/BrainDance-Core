@@ -120,6 +120,7 @@ for i in range(0, eeg.shape[1] - window_size, window_size):
     idx = np.argmin(np.abs(cv_times - t_center_ns))
     label = cv_states[idx]
 
+ hjo    
     if label == -1:
         continue
 
