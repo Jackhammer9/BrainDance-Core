@@ -1,0 +1,44 @@
+1. Thresholding ERD
+
+Raw EEG
+→ Bandpass 8–13 Hz or 8–30 Hz
+→ Power calculation per channel
+→ Compare C3 vs C4 ERD
+→ Threshold / simple classifier
+
+
+2. CSP with Artefact Rejection
+Raw EEG
+→ Bandpass 1–40 Hz
+→ Z-score peak detection
+→ Reject bad trials/windows
+→ Bandpass 8–30 Hz
+→ CSP
+→ LDA
+
+3. ICA + CSP pipeline
+Raw EEG
+→ Bandpass 1–40 Hz
+→ ICA
+→ Remove eye/muscle/noise components
+→ Bandpass 8–30 Hz
+→ CSP
+→ LDA
+
+4. Wavelets
+Raw EEG
+1. Bandpass lightly
+   1–40 Hz or 0.5–40 Hz
+2. Z-score peak detection
+   reject garbage trials
+3. Wavelet denoise each channel
+   DWT → threshold high-frequency coeffs → reconstruct
+4. Extract wavelet features
+   DWT/CWT on denoised signal
+   features:
+   - coefficient energy
+   - coefficient variance
+   - coefficient entropy
+   - band/scale power ratios
+5. Train classifier
+   StandardScaler → LDA/SVM/LogisticRegression
