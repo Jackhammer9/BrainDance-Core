@@ -14,11 +14,6 @@ from tkinter import ttk, messagebox
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, NoiseTypes
 
-
-# ============================================================
-# USER CONFIG
-# ============================================================
-
 BOARD_ID = 0
 SERIAL_PORT = "COM3"
 FS = 250
