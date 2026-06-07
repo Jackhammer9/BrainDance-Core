@@ -41,9 +41,9 @@ class Config:
     ENV_NOISE_MODE: int = 1
     BAD_CHANNELS: Tuple[int, ...] = (0, 1, 2, 6, 7)
     INFERENCE_INTERVAL_SECONDS: float = 0.25
-    CONFIDENCE_THRESHOLD: float = 0.5
-    REQUIRED_CONSECUTIVE_PREDICTIONS: int = 3
-    DECISION_COOLDOWN_SECONDS: float = 0.5
+    CONFIDENCE_THRESHOLD: float = 0.55
+    REQUIRED_CONSECUTIVE_PREDICTIONS: int = 2
+    DECISION_COOLDOWN_SECONDS: float = 0.75
     HOLD_LANE_ON_LOW_CONFIDENCE: bool = True
     CLASS_TO_COMMAND: Dict[int, str] = None
 
@@ -58,12 +58,12 @@ class Config:
     CAR_HEIGHT: int = 95
 
     CAR_Y: int = 500
-    CAR_LANE_MOVE_SPEED: float = 1.0
+    CAR_LANE_MOVE_SPEED: float = 8.0
 
     OBSTACLE_WIDTH: int = 70
     OBSTACLE_HEIGHT: int = 90
     OBSTACLE_SPEED: float = 5.5
-    OBSTACLE_SPAWN_INTERVAL_SECONDS: float = 900
+    OBSTACLE_SPAWN_INTERVAL_SECONDS: float = 15
     KEYBOARD_DEBUG_CONTROL: bool = True
 
     def __post_init__(self):
@@ -93,7 +93,8 @@ RATIO_PAIRS = [
 ]
 
 class EEGMLP(nn.Module):
-    def __init__(self, input_dim: int, num_classes: int):
+    def __init__(self, input_dim: int, 
+                 num_classes: int):
         super().__init__()
 
         self.net = nn.Sequential(
