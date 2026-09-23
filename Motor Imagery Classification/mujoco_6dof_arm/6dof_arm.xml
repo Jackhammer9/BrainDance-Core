@@ -1,0 +1,296 @@
+<mujoco model="6dof_robotic_arm">
+
+  <compiler
+    angle="radian"
+    meshdir="meshes"
+    autolimits="true"/>
+
+  <option
+    timestep="0.002"
+    gravity="0 0 -9.81"
+    integrator="implicitfast"/>
+
+  <visual>
+    <global
+      offwidth="1280"
+      offheight="720"/>
+
+    <headlight
+      diffuse="0.8 0.8 0.8"
+      ambient="0.40 0.40 0.40"
+      specular="0.25 0.25 0.25"/>
+
+    <rgba
+      haze="0.05 0.06 0.08 1"/>
+  </visual>
+
+  <asset>
+
+    <!-- Robot meshes -->
+    <mesh name="base" file="base.stl"/>
+    <mesh name="link1" file="link1.stl"/>
+    <mesh name="link2" file="link2.stl"/>
+    <mesh name="link3" file="link3.stl"/>
+    <mesh name="link4" file="link4.stl"/>
+    <mesh name="link5" file="link5.stl"/>
+
+    <!-- Gripper meshes -->
+    <mesh name="gripper0" file="gripper_0.stl"/>
+    <mesh name="gripper1" file="gripper_1.stl"/>
+    <mesh name="gripper2" file="gripper_2.stl"/>
+    <mesh name="gripper3" file="gripper_3.stl"/>
+    <mesh name="gripper4" file="gripper_4.stl"/>
+
+    <!-- Black robot -->
+    <material
+    name="robot_gray"
+    rgba="0.16 0.17 0.19 1"
+    specular="0.25"
+    shininess="0.30"/>
+
+    <!-- Table -->
+    <material
+      name="table_white"
+      rgba="0.82 0.80 0.74 1"
+      specular="0.15"
+      shininess="0.20"/>
+
+    <!-- Light blue sky -->
+    <texture
+      name="sky"
+      type="skybox"
+      builtin="gradient"
+      rgb1="0.55 0.75 0.95"
+      rgb2="0.80 0.90 1.00"
+      width="512"
+      height="512"/>
+
+  </asset>
+
+  <default>
+
+    <joint
+      damping="0.1"
+      armature="0.002"
+      limited="true"/>
+
+    <geom
+      contype="0"
+      conaffinity="0"
+      density="700"/>
+
+    <motor
+      ctrllimited="true"
+      ctrlrange="-1 1"/>
+
+  </default>
+
+  <worldbody>
+
+    <!-- Ground / table -->
+    <geom
+      name="floor"
+      type="plane"
+      size="2 2 0.1"
+      pos="0 0 0"
+      material="table_white"
+      contype="1"
+      conaffinity="1"/>
+
+    <!-- BASE -->
+    <body
+      name="base"
+      pos="0.000000000 0.002000000 0.015000000">
+
+      <geom
+        type="mesh"
+        mesh="base"
+        material="robot_gray"/>
+
+      <!-- LINK 1 -->
+      <body
+        name="link1"
+        pos="0.000000000 -0.031745355 0.064600000">
+
+        <joint
+          name="joint1"
+          type="hinge"
+          axis="0 0 1"
+          range="-3.14159265 3.14159265"/>
+
+        <geom
+          type="mesh"
+          mesh="link1"
+          material="robot_gray"/>
+
+        <!-- LINK 2 -->
+        <body
+          name="link2"
+          pos="0.008600000 -0.009999000 0.000000000">
+
+          <joint
+            name="joint2"
+            type="hinge"
+            axis="1 0 0"
+            range="-1.5707963 1.5707963"/>
+
+          <geom
+            type="mesh"
+            mesh="link2"
+            material="robot_gray"/>
+
+          <!-- LINK 3 -->
+          <body
+            name="link3"
+            pos="0.000000000 0.010001000 0.134237000">
+
+            <joint
+              name="joint3"
+              type="hinge"
+              axis="1 0 0"
+              range="-2.2 2.2"/>
+
+            <geom
+              type="mesh"
+              mesh="link3"
+              material="robot_gray"/>
+
+            <!-- LINK 4 -->
+            <body
+              name="link4"
+              pos="0.000001000 -0.159492645 -0.012498000">
+
+              <joint
+                name="joint4"
+                type="hinge"
+                axis="0 1 0"
+                range="-1.5707963 1.5707963"/>
+
+              <geom
+                type="mesh"
+                mesh="link4"
+                material="robot_gray"/>
+
+              <!-- LINK 5 -->
+              <body
+                name="link5"
+                pos="0.027829300 -0.051746000 -0.001499900">
+
+                <joint
+                  name="joint5"
+                  type="hinge"
+                  axis="1 0 0"
+                  range="-2.2 2.2"/>
+
+                <geom
+                  type="mesh"
+                  mesh="link5"
+                  material="robot_gray"/>
+
+                <!-- LINK 6 / GRIPPER -->
+                <body
+                  name="link6"
+                  pos="-0.021430300 -0.045608000 0.005999900">
+
+                  <joint
+                    name="joint6"
+                    type="hinge"
+                    axis="0 0 1"
+                    range="-3.14159265 3.14159265"/>
+
+                  <geom
+                    type="mesh"
+                    mesh="gripper0"
+                    material="robot_gray"/>
+
+                  <geom
+                    type="mesh"
+                    mesh="gripper1"
+                    material="robot_gray"/>
+
+                  <geom
+                    type="mesh"
+                    mesh="gripper2"
+                    material="robot_gray"/>
+
+                  <geom
+                    type="mesh"
+                    mesh="gripper3"
+                    material="robot_gray"/>
+
+                  <geom
+                    type="mesh"
+                    mesh="gripper4"
+                    material="robot_gray"/>
+
+                </body>
+
+              </body>
+
+            </body>
+
+          </body>
+
+        </body>
+
+      </body>
+
+    </body>
+
+  </worldbody>
+
+  <!-- MOTORS -->
+  <actuator>
+
+    <motor
+      name="motor1"
+      joint="joint1"
+      gear="30"/>
+
+    <motor
+      name="motor2"
+      joint="joint2"
+      gear="30"/>
+
+    <motor
+      name="motor3"
+      joint="joint3"
+      gear="30"/>
+
+    <motor
+      name="motor4"
+      joint="joint4"
+      gear="15"/>
+
+    <motor
+      name="motor5"
+      joint="joint5"
+      gear="10"/>
+
+    <motor
+      name="motor6"
+      joint="joint6"
+      gear="5"/>
+
+  </actuator>
+
+  <!-- END-EFFECTOR POSITION SENSOR -->
+  <sensor>
+
+    <framepos
+      name="ee_pos"
+      objtype="body"
+      objname="link6"/>
+
+  </sensor>
+
+  <!-- HOME POSITION -->
+  <keyframe>
+
+    <key
+      name="home"
+      qpos="0 0 0 0 0 0"/>
+
+  </keyframe>
+
+</mujoco>
